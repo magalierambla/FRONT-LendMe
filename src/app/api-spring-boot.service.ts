@@ -25,7 +25,7 @@ export class apiHttpSpringBootService {
   // https://spring-boot-secu-crowdfind-h2.herokuapp.com   spring-boot-security (H2-database)
 
  
-   private apiUrlCloud = 'https://spring-boot-secu-crowdfind-h2.herokuapp.com/api';
+   private apiUrlCloud = 'https://back-lendme.herokuapp.com/api';
 
 
 
