@@ -1,663 +1,551 @@
-import { Component, OnInit, ElementRef, ViewChild} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { CookieService } from 'ngx-cookie-service';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 import { apiHttpSpringBootService } from './../api-spring-boot.service';
 import { ImageService } from './../image.service';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { DatePipe } from '@angular/common';
-import {ImageProjectModel, StatutProjectModel, AdressReseauxSociauxProjectModel, UserModel,
-   ProjectModel, ResponseConnectionUserModel   } from '../interfaces/models';
+import {
+  ImageProjectModel,
+  StatutProjectModel,
+  AdressReseauxSociauxProjectModel,
+  UserModel,
+  ProjectModel,
+  ResponseConnectionUserModel,
+} from '../interfaces/models';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 
 // tslint:disable-next-line:import-spacing
-import * as  Constants  from './../constants/constants';
+import * as Constants from './../constants/constants';
 
 declare var window: any;
-
-
 
 @Component({
   selector: 'app-project-add-company-owner',
   templateUrl: './project-add-company-owner.component.html',
-  styleUrls: ['./project-add-company-owner.component.css']
+  styleUrls: ['./project-add-company-owner.component.css'],
 })
 export class ProjectAddCompanyOwnerComponent implements OnInit {
+  public infosUser: UserModel = new UserModel();
 
-@ViewChild('recaptcha', {static: true }) recaptchaElement: ElementRef;
+  public ObjetResponseConnection: ResponseConnectionUserModel = new ResponseConnectionUserModel();
 
-     public infosUser: UserModel = new UserModel();
+  public ObjetProject: ProjectModel = new ProjectModel();
 
-     public ObjetResponseConnection: ResponseConnectionUserModel = new ResponseConnectionUserModel();
+  public statutProject: StatutProjectModel = new StatutProjectModel();
 
-     public ObjetProject: ProjectModel = new ProjectModel();
+  public photosProject: Array<ImageProjectModel> = [];
 
-     public   statutProject: StatutProjectModel = new StatutProjectModel();
+  public imageFile: File;
 
-     private isvalidCaptcha = false ;
+  public isErreurValidProject = false;
 
-     public isErreurCaptcha = false;
+  public comptImagesProject = 0;
 
-     public photosProject: Array<ImageProjectModel> = [];
+  public listCategorieProject = [];
 
-     public imageFile: File;
+  public listPorteProject = [];
 
-     public isErreurValidProject = false;
+  public adressReseauxSociauxProject: Array<AdressReseauxSociauxProjectModel> = [];
 
-     public comptImagesProject = 0;
+  public typeMediaWeb: any = '';
 
-     public listCategorieProject = [];
+  public listCanalMedia = [
+    { key: 'site_internet/Site internet', value: 'Site internet' },
+    { key: 'link_google_plus/Google plus', value: 'Google plus' },
+    { key: 'link_facbook/Face-book', value: 'Face-book' },
+    { key: 'link_youtube/Youtube', value: 'Youtube' },
+    { key: 'link_twitter/Twitter', value: 'Twitter' },
+    { key: 'num_tel/Numero téléphone', value: 'Numero téléphone' },
+  ];
 
-     public listPorteProject = [];
+  public linkProject = '';
 
-     public adressReseauxSociauxProject: Array<AdressReseauxSociauxProjectModel> = [];
+  datePickerConfig = {
+    drops: 'up',
+    format: 'YYYY-MM-DD',
+    locale: 'fr',
+    addClass: 'form-control',
+  };
 
-     public typeMediaWeb: any = '';
+  public addProjectForm: FormGroup;
 
-     public listCanalMedia = [
+  public submitted = false;
 
-                             {key: 'site_internet/Site internet', value: 'Site internet'},
-                             {key: 'link_google_plus/Google plus', value: 'Google plus'},
-                             {key: 'link_facbook/Face-book', value: 'Face-book'},
-                             {key: 'link_youtube/Youtube', value: 'Youtube'},
-                             {key: 'link_twitter/Twitter', value: 'Twitter'},
-                             {key: 'num_tel/Numero téléphone', value: 'Numero téléphone'},
+  public checkContrePartie = false;
 
-     ];
-
-     public linkProject = '';
-
-     datePickerConfig = {
-                        drops: 'up',
-                        format: 'YYYY-MM-DD',
-                        locale: 'fr',
-                        addClass: 'form-control',
-     };
-
-     public addProjectForm: FormGroup;
-
-     public submitted = false;
-
-     public checkContrePartie = false;
-
-     // tslint:disable-next-line:ban-types
-     public options: Object = {
-      charCounterCount: true,
-      attribution: false,
-      placeholderText: 'Décrivez brièvement votre projet *',
-      heightMin: 200
+  // tslint:disable-next-line:ban-types
+  public options: Object = {
+    charCounterCount: true,
+    attribution: false,
+    placeholderText: 'Décrivez brièvement votre projet *',
+    heightMin: 200,
     /*  toolbarButtons: ['bold', 'italic', 'underline', 'paragraphFormat', 'alert'],
       toolbarButtonsXS: ['bold', 'italic', 'underline', 'paragraphFormat', 'alert'],
       toolbarButtonsSM: ['bold', 'italic', 'underline', 'paragraphFormat', 'alert'],
       toolbarButtonsMD: ['bold', 'italic', 'underline', 'paragraphFormat', 'alert'],*/
-    };
+  };
 
-    public srcImageAfficheProject = 'http://placehold.it/500x325';
+  public srcImageAfficheProject = 'http://placehold.it/500x325';
 
+  constructor(
+    private formBuilder: FormBuilder,
+    private router: Router,
+    private cookie: CookieService,
+    private apiService: apiHttpSpringBootService,
+    private imageService: ImageService,
+    private ngxService: NgxUiLoaderService,
+    private datePipe: DatePipe,
+    private titleService: Title
+  ) {
+    this.titleService.setTitle('ajouter un projet');
 
-     constructor(private formBuilder: FormBuilder, private router: Router, private cookie: CookieService,
-                 private apiService: apiHttpSpringBootService, private imageService: ImageService,
-                 private ngxService: NgxUiLoaderService, private datePipe: DatePipe, private titleService: Title) {
+    if (
+      this.cookie.get('infosUser') &&
+      this.cookie.get('ObjetResponseConnection')
+    ) {
+      this.infosUser = JSON.parse(this.cookie.get('infosUser'));
 
-                  this.titleService.setTitle('ajouter un projet');
+      this.ObjetResponseConnection = JSON.parse(
+        this.cookie.get('ObjetResponseConnection')
+      );
 
-                  if (this.cookie.get('infosUser')  &&  this.cookie.get('ObjetResponseConnection')) {
+      if (this.infosUser.photoUser === '' || !this.infosUser.photoUser) {
+        if (this.infosUser.sex === 'F') {
+          this.infosUser.photoUser = './assets/img/users/user_f.png';
+        }
 
-                    this.infosUser = JSON.parse(this.cookie.get('infosUser'));
+        if (this.infosUser.sex === 'H') {
+          this.infosUser.photoUser = './assets/img/users/user_m.png';
+        }
+      }
 
-                    this.ObjetResponseConnection = JSON.parse(this.cookie.get('ObjetResponseConnection'));
-
-                    if (this.infosUser.photoUser === '' || !this.infosUser.photoUser){
-
-                   if (this.infosUser.sex === 'F') {
-
-                            this.infosUser.photoUser = './assets/img/users/user_f.png';
-
-                      }
-
-                   if (this.infosUser.sex === 'H') {
-
-                        this.infosUser.photoUser = './assets/img/users/user_m.png';
-
-                    }
-
-                 }
-
-                    console.log('ProfilUserComponent', this.infosUser);
-
-                  }else{
-
-                    this.router.navigate(['/Identification']);
-                  }
-
-
+      console.log('ProfilUserComponent', this.infosUser);
+    } else {
+      this.router.navigate(['/Identification']);
+    }
   }
 
-  tinyAlert(message: string){
-
-        Swal.fire(message);
+  tinyAlert(message: string) {
+    Swal.fire(message);
   }
 
   ngOnInit(): void {
-
-
     this.addProjectForm = this.formBuilder.group({
-                                                nomProject: ['', Validators.required],
-                                                descriptionProject: ['', Validators.required],
-                                                porteProject : ['', Validators.required],
-                                                categorieProject : ['', Validators.required],
-                                                // tslint:disable-next-line:max-line-length
-                                                montantMinimunProject : ['', [Validators.required, Validators.min(1)]],
-                                                dateLimitCollectProject : ['', [Validators.required, Validators.pattern('[0-9]{4}-[0-9]{2}-[0-9]{2}')]],
-                                              //  contrePartieProject: ['', Validators.required],
-       });
-
-    this.addRecaptchaScript();
+      nomProject: ['', Validators.required],
+      descriptionProject: ['', Validators.required],
+      porteProject: ['', Validators.required],
+      categorieProject: ['', Validators.required],
+      // tslint:disable-next-line:max-line-length
+      montantMinimunProject: ['', [Validators.required, Validators.min(1)]],
+      dateLimitCollectProject: [
+        '',
+        [Validators.required, Validators.pattern('[0-9]{4}-[0-9]{2}-[0-9]{2}')],
+      ],
+      //  contrePartieProject: ['', Validators.required],
+    });
 
     this.getListCategorieProject();
 
     this.getListPorteProject();
-
   }
 
-  get f() { return this.addProjectForm.controls; }
-
-
-
-  addRecaptchaScript() {
-
-    window.grecaptchaCallback = () => {
-      this.renderReCaptcha();
-    };
-
-    (function(d, s, id, obj){
-      let js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) { obj.renderReCaptcha(); return; }
-      js = d.createElement(s); js.id = id;
-      js.src = 'https://www.google.com/recaptcha/api.js?onload=grecaptchaCallback&amp;render=explicit';
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'recaptcha-jssdk', this));
-
+  get f() {
+    return this.addProjectForm.controls;
   }
 
-  renderReCaptcha() {
-    window.grecaptcha.render(this.recaptchaElement.nativeElement, {
-      sitekey: '6Lf4I6gZAAAAAMp1E9YI1FJghdQ20CNRtAV9d55y',
-      callback: (response) => {
-          console.log('response', response);
-
-          this.isvalidCaptcha = true;
-
-          this.isErreurCaptcha = false;
-      }
-    });
-  }
-
-  addEventDateLimiteCollecte(event){
-
+  addEventDateLimiteCollecte(event) {
     const date = new Date();
 
-    if (new Date(event) < date){
+    if (new Date(event) < date) {
+      this.isErreurValidProject = true;
 
-           this.isErreurValidProject = true;
-
-           this.tinyAlert('La date limite de projet doit etre superieur à la date actuelle !!!');
-    }else{
-
+      this.tinyAlert(
+        'La date limite de projet doit etre superieur à la date actuelle !!!'
+      );
+    } else {
       this.isErreurValidProject = false;
 
-      this.ObjetProject.date_limite_collecte = this.datePipe.transform(event, 'yyyy-MM-dd');
-      
+      this.ObjetProject.date_limite_collecte = this.datePipe.transform(
+        event,
+        'yyyy-MM-dd'
+      );
+
       console.log(this.ObjetProject.date_limite_collecte);
-
     }
-
   }
 
-  handleChange(value){
-
+  handleChange(value) {
     this.ObjetProject.contrePartieProject = value;
 
     this.checkContrePartie = false;
-
   }
 
-  addImageProject(tokenProject, objectImage: ImageProjectModel){
-
-    this.apiService.addImageProject(this.ObjetResponseConnection, tokenProject, objectImage).subscribe((data: any) => {
-
-      console.log('data-image-project', data);
-
-
-    }, (error: any) => {
-
-    });
-
-
+  addImageProject(tokenProject, objectImage: ImageProjectModel) {
+    this.apiService
+      .addImageProject(this.ObjetResponseConnection, tokenProject, objectImage)
+      .subscribe(
+        (data: any) => {
+          console.log('data-image-project', data);
+        },
+        (error: any) => {}
+      );
   }
 
-  deleteImageByProject(indexProject: number){
-
-     this.photosProject.splice(indexProject, 1);
-
+  deleteImageByProject(indexProject: number) {
+    this.photosProject.splice(indexProject, 1);
   }
 
-  onChangeCategorieProject(index){
-
+  onChangeCategorieProject(index) {
     console.log('objectCategorie', this.listCategorieProject[index]);
 
     this.ObjetProject.categoryProject = this.listCategorieProject[index];
   }
 
-  onChangePorteProject(index){
-
+  onChangePorteProject(index) {
     console.log('objectPorte', this.listPorteProject[index]);
 
     this.ObjetProject._porte_project = this.listPorteProject[index];
   }
 
-  onFormSubmitAddProject(){
-
+  onFormSubmitAddProject() {
     this.submitted = true;
 
-    if (!this.isvalidCaptcha){
+    console.log(
+      'this.ObjetProject.contrePartieProject = ',
+      this.ObjetProject.contrePartieProject
+    );
 
-        this.isErreurCaptcha = true;
-
-    }
-
-    console.log('this.ObjetProject.contrePartieProject = ', this.ObjetProject.contrePartieProject);
-
-    if (this.ObjetProject.contrePartieProject === undefined){
-
+    if (this.ObjetProject.contrePartieProject === undefined) {
       this.checkContrePartie = true;
-     }
+    }
 
     // console.log("f.porteProject.errors.required = ", this.f.porteProject.errors.required);
 
     // console.log("f.porteProject.errors = ", this.f.porteProject.errors);
 
-         // stop here if form is invalid
+    // stop here if form is invalid
     if (this.addProjectForm.invalid) {
-             return;
-         }
+      return;
+    }
 
-     // console.log("this.ObjetProject.contrePartieProject = ", this.ObjetProject.contrePartieProject);
+    // console.log("this.ObjetProject.contrePartieProject = ", this.ObjetProject.contrePartieProject);
 
-     // console.log("this.isvalidCaptcha = ", this.isvalidCaptcha);
+    // console.log("this.isvalidCaptcha = ", this.isvalidCaptcha);
 
-     // console.log("!this.isErreurValidProject = ", !this.isErreurValidProject);
+    // console.log("!this.isErreurValidProject = ", !this.isErreurValidProject);
 
-    if (this.ObjetProject.contrePartieProject  && this.isvalidCaptcha    &&  !this.checkContrePartie){
-
+    if (this.ObjetProject.contrePartieProject && !this.checkContrePartie) {
       this.ObjetProject.total_fonds = 0;
 
-      this.apiService.addProjectByCompanyOwner(this.ObjetResponseConnection, this.ObjetProject).subscribe((dataProject: ProjectModel) => {
+      this.apiService
+        .addProjectByCompanyOwner(
+          this.ObjetResponseConnection,
+          this.ObjetProject
+        )
+        .subscribe(
+          (dataProject: ProjectModel) => {
+            console.log(dataProject);
 
-        console.log(dataProject);
+            this.ObjetProject = dataProject;
 
-        this.ObjetProject = dataProject;
+            /*************************************************************** */
 
-        /*************************************************************** */
-
-        if (this.photosProject.length > 0){
-
-             // tslint:disable-next-line:prefer-for-of
-             for (let index = 0; index < this.photosProject.length; index++) {
-
-                 this.addImageProject( this.ObjetProject.token, this.photosProject[index]);
-             }
-        }
-
-         /*************************************************************** */
-
-        if (this.adressReseauxSociauxProject.length > 0){
-
-          // tslint:disable-next-line:prefer-for-of
-          for (let index = 0; index < this.adressReseauxSociauxProject.length; index++) {
-
-              this.addAdressReseauSocialProject( this.ObjetProject.token, this.adressReseauxSociauxProject[index]);
-          }
-       }
-
-
-
-          /*************************************************************** */
-
-        this.router.navigate(['/user-my-projetcs']);
-
-
-       }, (error: any) => {
-
-      });
-
-
-     }
-
-}
-
-addAdressWeb(){
-
-  if (this.typeMediaWeb){
-
-    if (this.linkProject){
-
-      const arrayMedia = this.typeMediaWeb.split('/');
-
-      let checkControlValueMedia = true;
-
-      if (arrayMedia[0] === 'site_internet'){
-
-        // test ok
-
-        const regexphtpp = new RegExp('^((http|https)://){1}(www[.])?([a-zA-Z0-9]|-)+([.][a-zA-Z0-9(-|/|=|?)?]+)+$');
-
-        if (!regexphtpp.test(this.linkProject)){
-
-          checkControlValueMedia = false;
-
-          this.tinyAlert('Votre url est invalide.!!!');
-
-        }
-
-      }else if (arrayMedia[0] === 'link_google_plus'){
-
-        // tslint:disable-next-line:max-line-length
-        //  http(s)?:\/\/(www\.)?google\.(com|ad|ae|com.af|com.ag|com.ai|al|am|co.ao|com.ar|as|at|com.au|az|ba|com.bd|be|bf|bg|com.bh|bi|bj|com.bn|com.bo|com.br|bs|bt|co.bw|by|com.bz|ca|cd|cf|cg|ch|ci|co.ck|cl|cm|cn|com.co|co.cr|com.cu|cv|com.cy|cz|de|dj|dk|dm|com.do|dz|com.ec|ee|com.eg|es|com.et|fi|com.fj|fm|fr|ga|ge|gg|com.gh|com.gi|gl|gm|gp|gr|com.gt|gy|com.hk|hn|hr|ht|hu|co.id|ie|co.il|im|co.in|iq|is|it|je|com.jm|jo|co.jp|co.ke|com.kh|ki|kg|co.kr|com.kw|kz|la|com.lb|li|lk|co.ls|lt|lu|lv|com.ly|co.ma|md|me|mg|mk|ml|com.mm|mn|ms|com.mt|mu|mv|mw|com.mx|com.my|co.mz|com.na|com.nf|com.ng|com.ni|ne|nl|no|com.np|nr|nu|co.nz|com.om|com.pa|com.pe|com.pg|com.ph|com.pk|pl|pn|com.pr|ps|pt|com.py|com.qa|ro|ru|rw|com.sa|com.sb|sc|se|com.sg|sh|si|sk|com.sl|sn|so|sm|sr|st|com.sv|td|tg|co.th|com.tj|tk|tl|tm|tn|to|com.tr|tt|com.tw|co.tz|com.ua|co.ug|co.uk|com.uy|co.uz|com.vc|co.ve|vg|co.vi|com.vn|vu|ws|rs|co.za|co.zm|co.zw|cat)\/.*/
-
-        const regexpgoogle = new RegExp('http(s)?:\/\/(www\.)?google\.(com|ad|ae|com.af|com.ag|com.ai|al|am|co.ao|com.ar|as|at|com.au|az|ba|com.bd|be|bf|bg|com.bh|bi|bj|com.bn|com.bo|com.br|bs|bt|co.bw|by|com.bz|ca|cd|cf|cg|ch|ci|co.ck|cl|cm|cn|com.co|co.cr|com.cu|cv|com.cy|cz|de|dj|dk|dm|com.do|dz|com.ec|ee|com.eg|es|com.et|fi|com.fj|fm|fr|ga|ge|gg|com.gh|com.gi|gl|gm|gp|gr|com.gt|gy|com.hk|hn|hr|ht|hu|co.id|ie|co.il|im|co.in|iq|is|it|je|com.jm|jo|co.jp|co.ke|com.kh|ki|kg|co.kr|com.kw|kz|la|com.lb|li|lk|co.ls|lt|lu|lv|com.ly|co.ma|md|me|mg|mk|ml|com.mm|mn|ms|com.mt|mu|mv|mw|com.mx|com.my|co.mz|com.na|com.nf|com.ng|com.ni|ne|nl|no|com.np|nr|nu|co.nz|com.om|com.pa|com.pe|com.pg|com.ph|com.pk|pl|pn|com.pr|ps|pt|com.py|com.qa|ro|ru|rw|com.sa|com.sb|sc|se|com.sg|sh|si|sk|com.sl|sn|so|sm|sr|st|com.sv|td|tg|co.th|com.tj|tk|tl|tm|tn|to|com.tr|tt|com.tw|co.tz|com.ua|co.ug|co.uk|com.uy|co.uz|com.vc|co.ve|vg|co.vi|com.vn|vu|ws|rs|co.za|co.zm|co.zw|cat)\/.*/');
-
-        if (!regexpgoogle.test(this.linkProject)){
-
-          checkControlValueMedia = false;
-
-          this.tinyAlert('Votre url est invalide.!!!');
-
-        }
-
-      }else if (arrayMedia[0] === 'link_facbook'){
-
-        // https://www.facebook.com/   //test ok
-
-       // tslint:disable-next-line:max-line-length
-       //    /^(https?:\/\/)?(www\.)?facebook.com\/[a-zA-Z0-9(\.\?)?]/
-
-       const regexpfacebook = new RegExp('(?:(?:http|https):\/\/)?(?:www.)?facebook.com\/(?:(?:\w)*#!\/)?(?:pages\/)?(?:[?\w\-]*\/)?(?:profile.php\?id=(?=\d.*))?([\w\-]*)?');
-
-       if (!regexpfacebook.test(this.linkProject)){
-
-         checkControlValueMedia = false;
-
-         this.tinyAlert('Votre url est invalide.!!!');
-
-       }
-
-
-      }else if (arrayMedia[0] === 'link_youtube'){
-
-           // tslint:disable-next-line:max-line-length
-           //    ^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$
-
-           const regexpyoutube = new RegExp('^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$');
-
-           if (!regexpyoutube.test(this.linkProject)){
-
-                  checkControlValueMedia = false;
-
-                  this.tinyAlert('Votre url est invalide.!!!');
-
+            if (this.photosProject.length > 0) {
+              // tslint:disable-next-line:prefer-for-of
+              for (let index = 0; index < this.photosProject.length; index++) {
+                this.addImageProject(
+                  this.ObjetProject.token,
+                  this.photosProject[index]
+                );
+              }
             }
 
+            /*************************************************************** */
 
-      }else if (arrayMedia[0] === 'link_twitter'){
+            if (this.adressReseauxSociauxProject.length > 0) {
+              // tslint:disable-next-line:prefer-for-of
+              for (
+                let index = 0;
+                index < this.adressReseauxSociauxProject.length;
+                index++
+              ) {
+                this.addAdressReseauSocialProject(
+                  this.ObjetProject.token,
+                  this.adressReseauxSociauxProject[index]
+                );
+              }
+            }
 
-        // '/^(?:https?:\/\/)?(?:www\.)?twitter\.com\/(#!\/)?[a-zA-Z0-9_]+$/i'
+            /*************************************************************** */
 
-        const regexptwitter = new RegExp('/^(?:https?:\/\/)?(?:www\.)?twitter\.com\/(#!\/)?[a-zA-Z0-9_]+$/i');
+            this.router.navigate(['/user-my-projetcs']);
+          },
+          (error: any) => {}
+        );
+    }
+  }
 
-        if (!regexptwitter.test(this.linkProject)){
+  addAdressWeb() {
+    if (this.typeMediaWeb) {
+      if (this.linkProject) {
+        const arrayMedia = this.typeMediaWeb.split('/');
 
-                  checkControlValueMedia = false;
+        let checkControlValueMedia = true;
 
-                  this.tinyAlert('Votre url est invalide.!!!');
+        if (arrayMedia[0] === 'site_internet') {
+          // test ok
 
-         }
+          const regexphtpp = new RegExp(
+            '^((http|https)://){1}(www[.])?([a-zA-Z0-9]|-)+([.][a-zA-Z0-9(-|/|=|?)?]+)+$'
+          );
 
-      }else if (arrayMedia[0] === 'num_tel'){
+          if (!regexphtpp.test(this.linkProject)) {
+            checkControlValueMedia = false;
 
-      // test ok
+            this.tinyAlert('Votre url est invalide.!!!');
+          }
+        } else if (arrayMedia[0] === 'link_google_plus') {
+          // tslint:disable-next-line:max-line-length
+          //  http(s)?:\/\/(www\.)?google\.(com|ad|ae|com.af|com.ag|com.ai|al|am|co.ao|com.ar|as|at|com.au|az|ba|com.bd|be|bf|bg|com.bh|bi|bj|com.bn|com.bo|com.br|bs|bt|co.bw|by|com.bz|ca|cd|cf|cg|ch|ci|co.ck|cl|cm|cn|com.co|co.cr|com.cu|cv|com.cy|cz|de|dj|dk|dm|com.do|dz|com.ec|ee|com.eg|es|com.et|fi|com.fj|fm|fr|ga|ge|gg|com.gh|com.gi|gl|gm|gp|gr|com.gt|gy|com.hk|hn|hr|ht|hu|co.id|ie|co.il|im|co.in|iq|is|it|je|com.jm|jo|co.jp|co.ke|com.kh|ki|kg|co.kr|com.kw|kz|la|com.lb|li|lk|co.ls|lt|lu|lv|com.ly|co.ma|md|me|mg|mk|ml|com.mm|mn|ms|com.mt|mu|mv|mw|com.mx|com.my|co.mz|com.na|com.nf|com.ng|com.ni|ne|nl|no|com.np|nr|nu|co.nz|com.om|com.pa|com.pe|com.pg|com.ph|com.pk|pl|pn|com.pr|ps|pt|com.py|com.qa|ro|ru|rw|com.sa|com.sb|sc|se|com.sg|sh|si|sk|com.sl|sn|so|sm|sr|st|com.sv|td|tg|co.th|com.tj|tk|tl|tm|tn|to|com.tr|tt|com.tw|co.tz|com.ua|co.ug|co.uk|com.uy|co.uz|com.vc|co.ve|vg|co.vi|com.vn|vu|ws|rs|co.za|co.zm|co.zw|cat)\/.*/
+
+          const regexpgoogle = new RegExp(
+            'http(s)?://(www.)?google.(com|ad|ae|com.af|com.ag|com.ai|al|am|co.ao|com.ar|as|at|com.au|az|ba|com.bd|be|bf|bg|com.bh|bi|bj|com.bn|com.bo|com.br|bs|bt|co.bw|by|com.bz|ca|cd|cf|cg|ch|ci|co.ck|cl|cm|cn|com.co|co.cr|com.cu|cv|com.cy|cz|de|dj|dk|dm|com.do|dz|com.ec|ee|com.eg|es|com.et|fi|com.fj|fm|fr|ga|ge|gg|com.gh|com.gi|gl|gm|gp|gr|com.gt|gy|com.hk|hn|hr|ht|hu|co.id|ie|co.il|im|co.in|iq|is|it|je|com.jm|jo|co.jp|co.ke|com.kh|ki|kg|co.kr|com.kw|kz|la|com.lb|li|lk|co.ls|lt|lu|lv|com.ly|co.ma|md|me|mg|mk|ml|com.mm|mn|ms|com.mt|mu|mv|mw|com.mx|com.my|co.mz|com.na|com.nf|com.ng|com.ni|ne|nl|no|com.np|nr|nu|co.nz|com.om|com.pa|com.pe|com.pg|com.ph|com.pk|pl|pn|com.pr|ps|pt|com.py|com.qa|ro|ru|rw|com.sa|com.sb|sc|se|com.sg|sh|si|sk|com.sl|sn|so|sm|sr|st|com.sv|td|tg|co.th|com.tj|tk|tl|tm|tn|to|com.tr|tt|com.tw|co.tz|com.ua|co.ug|co.uk|com.uy|co.uz|com.vc|co.ve|vg|co.vi|com.vn|vu|ws|rs|co.za|co.zm|co.zw|cat)/.*/'
+          );
+
+          if (!regexpgoogle.test(this.linkProject)) {
+            checkControlValueMedia = false;
+
+            this.tinyAlert('Votre url est invalide.!!!');
+          }
+        } else if (arrayMedia[0] === 'link_facbook') {
+          // https://www.facebook.com/   //test ok
+
+          // tslint:disable-next-line:max-line-length
+          //    /^(https?:\/\/)?(www\.)?facebook.com\/[a-zA-Z0-9(\.\?)?]/
+
+          const regexpfacebook = new RegExp(
+            '(?:(?:http|https)://)?(?:www.)?facebook.com/(?:(?:w)*#!/)?(?:pages/)?(?:[?w-]*/)?(?:profile.php?id=(?=d.*))?([w-]*)?'
+          );
+
+          if (!regexpfacebook.test(this.linkProject)) {
+            checkControlValueMedia = false;
+
+            this.tinyAlert('Votre url est invalide.!!!');
+          }
+        } else if (arrayMedia[0] === 'link_youtube') {
+          // tslint:disable-next-line:max-line-length
+          //    ^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$
+
+          const regexpyoutube = new RegExp(
+            '^((?:https?:)?//)?((?:www|m).)?((?:youtube.com|youtu.be))(/(?:[w-]+?v=|embed/|v/)?)([w-]+)(S+)?$'
+          );
+
+          if (!regexpyoutube.test(this.linkProject)) {
+            checkControlValueMedia = false;
+
+            this.tinyAlert('Votre url est invalide.!!!');
+          }
+        } else if (arrayMedia[0] === 'link_twitter') {
+          // '/^(?:https?:\/\/)?(?:www\.)?twitter\.com\/(#!\/)?[a-zA-Z0-9_]+$/i'
+
+          const regexptwitter = new RegExp(
+            '/^(?:https?://)?(?:www.)?twitter.com/(#!/)?[a-zA-Z0-9_]+$/i'
+          );
+
+          if (!regexptwitter.test(this.linkProject)) {
+            checkControlValueMedia = false;
+
+            this.tinyAlert('Votre url est invalide.!!!');
+          }
+        } else if (arrayMedia[0] === 'num_tel') {
+          // test ok
 
           /*************************************************************************** */
 
-          if (this.linkProject.indexOf('+33') !== -1){
-
+          if (this.linkProject.indexOf('+33') !== -1) {
             this.linkProject = this.linkProject.replace('(+33)', '0');
 
             // alert("toto");
-         }
+          }
 
           // console.log('this.linkProject = ', this.linkProject);
 
-          const myPhoneRegex = new RegExp('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$');
+          const myPhoneRegex = new RegExp(
+            '^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]*$'
+          );
           if (myPhoneRegex.test(this.linkProject)) {
-               // Successful match
-           } else {
+            // Successful match
+          } else {
             checkControlValueMedia = false;
 
-            this.tinyAlert('Votre numero tel est invalide.exemple de saisie : 0685748546-bis');
-           }
+            this.tinyAlert(
+              'Votre numero tel est invalide.exemple de saisie : 0685748546-bis'
+            );
+          }
 
-         /************************************************************************ */
-     }
+          /************************************************************************ */
+        }
 
-      if (checkControlValueMedia){
+        if (checkControlValueMedia) {
+          const objectLinkMedia: AdressReseauxSociauxProjectModel = new AdressReseauxSociauxProjectModel();
 
+          objectLinkMedia.keyMedia = arrayMedia[0];
 
-        const objectLinkMedia: AdressReseauxSociauxProjectModel = new AdressReseauxSociauxProjectModel();
+          objectLinkMedia.valueMedia = arrayMedia[1];
 
-        objectLinkMedia.keyMedia = arrayMedia[0];
+          objectLinkMedia.linkProject = this.linkProject;
 
-        objectLinkMedia.valueMedia = arrayMedia[1];
+          this.adressReseauxSociauxProject.push(objectLinkMedia);
 
-        objectLinkMedia.linkProject = this.linkProject;
+          // this.ObjetProject.adressReseauxSociauxProject = this.adressReseauxSociauxProject;
 
-        this.adressReseauxSociauxProject.push(objectLinkMedia);
-
-       // this.ObjetProject.adressReseauxSociauxProject = this.adressReseauxSociauxProject;
-
-        // console.log(objectLinkMedia);
-
+          // console.log(objectLinkMedia);
+        }
+      } else {
+        this.tinyAlert('Veuillez saisir le url de votre type de media svp !!!');
       }
-
-    }else{
-
-      this.tinyAlert('Veuillez saisir le url de votre type de media svp !!!');
-    }
-
-
-  }else{
-
+    } else {
       this.tinyAlert('Veuillez choisir un type de media svp !!!');
-
+    }
   }
 
-
-}
-
-removeAdressWeb(index){
-
-  if (confirm('Vous ete sure de supprimer ladresse ')) {
-
-    this.adressReseauxSociauxProject.splice(index, 1);
-
+  removeAdressWeb(index) {
+    if (confirm('Vous ete sure de supprimer ladresse ')) {
+      this.adressReseauxSociauxProject.splice(index, 1);
+    }
   }
 
+  onChangeTypeMediaProject(event) {
+    console.log(event);
+  }
 
-}
+  deleteMediaByProject(indexObjectAdresse, objectAdresse) {}
 
-
-
-onChangeTypeMediaProject(event){
-
-
-     console.log(event);
-
-
-}
-
-deleteMediaByProject(indexObjectAdresse , objectAdresse){
-
-
-
-}
-
-  addAdressReseauSocialProject(tokenProject, objectadress: AdressReseauxSociauxProjectModel){
-
-    this.apiService.addAdressReseauSocialProject(this.ObjetResponseConnection, tokenProject, objectadress).subscribe((data: any) => {
-
-         console.log('service-addAdressReseauSocialProject', data);
-
-    }, (error: any) => {  });
+  addAdressReseauSocialProject(
+    tokenProject,
+    objectadress: AdressReseauxSociauxProjectModel
+  ) {
+    this.apiService
+      .addAdressReseauSocialProject(
+        this.ObjetResponseConnection,
+        tokenProject,
+        objectadress
+      )
+      .subscribe(
+        (data: any) => {
+          console.log('service-addAdressReseauSocialProject', data);
+        },
+        (error: any) => {}
+      );
   }
 
   imageInputChange(imageInput: any) {
-
-
     if (imageInput.files[0].type.indexOf('image') <= -1) {
+      this.tinyAlert('Veuillez telecharger une image');
+    } else {
+      const img = new Image();
 
-     this.tinyAlert('Veuillez telecharger une image');
+      img.src = window.URL.createObjectURL(imageInput.files[0]);
 
-   }else{
+      // console.log(imageInput.files[0].type.indexOf('image'));
 
-     const img = new Image();
-
-     img.src = window.URL.createObjectURL(imageInput.files[0]);
-
-     // console.log(imageInput.files[0].type.indexOf('image'));
-
-     img.onload = () => {
-
-         if (img.width < Constants.WIDTHIMAGEAFFICHEPRINCIPALPPROJECT && img.height < Constants.HEIGHTIMAGEAFFICHEPRINCIPALPROJECT){
-
-             // tslint:disable-next-line:max-line-length
-             this.tinyAlert('Veuillez telecharger une autre image svp.la largeur doit depasser ' + Constants.WIDTHIMAGEAFFICHEPRINCIPALPPROJECT + 'px et la hauteur ' + Constants.HEIGHTIMAGEAFFICHEPRINCIPALPROJECT + 'px');
-
-
-         }else{
-
-           this.imageFile = imageInput.files[0];
-         }
-
-     };
-
-   }
-
-
- }
+      img.onload = () => {
+        if (
+          img.width < Constants.WIDTHIMAGEAFFICHEPRINCIPALPPROJECT &&
+          img.height < Constants.HEIGHTIMAGEAFFICHEPRINCIPALPROJECT
+        ) {
+          // tslint:disable-next-line:max-line-length
+          this.tinyAlert(
+            'Veuillez telecharger une autre image svp.la largeur doit depasser ' +
+              Constants.WIDTHIMAGEAFFICHEPRINCIPALPPROJECT +
+              'px et la hauteur ' +
+              Constants.HEIGHTIMAGEAFFICHEPRINCIPALPROJECT +
+              'px'
+          );
+        } else {
+          this.imageFile = imageInput.files[0];
+        }
+      };
+    }
+  }
 
   addImage() {
-
-    if (this.imageFile){
-
+    if (this.imageFile) {
       this.ngxService.start();
 
       const infoObjectphotos = {
-                        title: 'images_project',
-                        description:  'images_project'
-                      };
+        title: 'images_project',
+        description: 'images_project',
+      };
 
+      this.imageService
+        .uploadImage(this.imageFile, infoObjectphotos)
+        .then((imageData: any) => {
+          console.log(imageData.data.link);
 
+          const newObjectPhoto: ImageProjectModel = new ImageProjectModel();
 
-      this.imageService.uploadImage(this.imageFile, infoObjectphotos).then((imageData: any) => {
+          newObjectPhoto.link = imageData.data.link;
 
-        console.log(imageData.data.link);
+          this.photosProject.push(newObjectPhoto);
 
-        const newObjectPhoto: ImageProjectModel = new ImageProjectModel();
+          this.comptImagesProject++;
 
-
-        newObjectPhoto.link = imageData.data.link;
-
-        this.photosProject.push(newObjectPhoto);
-
-        this.comptImagesProject++;
-
-        this.ngxService.stop();
-
-       });
-
-    }else{
-
+          this.ngxService.stop();
+        });
+    } else {
       this.tinyAlert('Veuillez telecharger une image svp');
     }
-
-
   }
 
-
-  addImageAfficheProject(){
-
-    if (this.imageFile){
-
+  addImageAfficheProject() {
+    if (this.imageFile) {
       this.ngxService.start();
 
       const infoObjectphotos = {
-                      title: 'image_affiche_project',
-                      description:  'image_affiche_project'
-            };
+        title: 'image_affiche_project',
+        description: 'image_affiche_project',
+      };
 
+      this.imageService
+        .uploadImage(this.imageFile, infoObjectphotos)
+        .then((imageData: any) => {
+          console.log(imageData.data.link);
 
+          this.ObjetProject.afficheProject = imageData.data.link;
 
-      this.imageService.uploadImage(this.imageFile, infoObjectphotos).then((imageData: any) => {
+          this.srcImageAfficheProject = imageData.data.link;
 
-      console.log(imageData.data.link);
-
-      this.ObjetProject.afficheProject = imageData.data.link;
-
-      this.srcImageAfficheProject = imageData.data.link;
-
-      this.ngxService.stop();
-
-
-     });
-
-
-    }else{
-
+          this.ngxService.stop();
+        });
+    } else {
       this.tinyAlert('Veuillez telecharger une image svp');
     }
-
   }
 
-  getListCategorieProject(){
+  getListCategorieProject() {
+    this.apiService.getListCategorieProject().subscribe(
+      (data: any) => {
+        console.log(data);
 
-    this.apiService.getListCategorieProject().subscribe((data: any) => {
-
-      console.log(data);
-
-      this.listCategorieProject = data;
-
-
-     }, (error: any) => {
-
-    });
-
+        this.listCategorieProject = data;
+      },
+      (error: any) => {}
+    );
   }
 
-  getListPorteProject(){
+  getListPorteProject() {
+    this.apiService.getListPorteProject().subscribe(
+      (data: any) => {
+        console.log(data);
 
-    this.apiService.getListPorteProject().subscribe((data: any) => {
-
-      console.log(data);
-
-      this.listPorteProject = data;
-
-
-     }, (error: any) => {
-
-    });
-
+        this.listPorteProject = data;
+      },
+      (error: any) => {}
+    );
   }
-
 }
