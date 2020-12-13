@@ -7,6 +7,7 @@ import { DatePipe } from '@angular/common';
 import {UserModel, ProjectModel, templteProjectModel, StatutProjectModel, CategorieProjectModel,
         PorteProjectModel, ResponseConnectionUserModel} from '../interfaces/models';
 import { Observable } from 'rxjs';
+import { truncatParagraphe } from '../interfaces/functions';
 
 
 
@@ -378,6 +379,8 @@ export class ProjectsListAdminComponent implements OnInit {
 
       this.listtemplateProjects[index].dateLimiteCollecteFormate = this.datePipe.transform(this.listProjects[index].date_limite_collecte, 'dd-MM-yyyy');
 
+      this.listtemplateProjects[index].project.description = truncatParagraphe(this.listtemplateProjects[index].project.description);
+      
       this.listProjectsTemp = this.listProjects;
 
 

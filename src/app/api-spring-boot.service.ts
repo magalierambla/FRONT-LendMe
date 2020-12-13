@@ -5,7 +5,7 @@ import {UserModel, ProjectModel,  ImageProjectModel, AdressReseauxSociauxProject
         HeartProjectUserModel, LikeProjectUserModel, VueProjectUserModel,
         NewsProjectModel, CommissionProjectModel, MessageInterneModel,
          ResponseConnectionUserModel, ConnectionUserModel, InscriptionUserModel,
-          TypeStatistiqueModel, StatutDemandeInvest} from './interfaces/models';
+          TypeStatistiqueModel, StatutDemandeInvest, ProjectRequestModel} from './interfaces/models';
 import { Observable } from 'rxjs/internal/Observable';
 
 
@@ -25,7 +25,7 @@ export class apiHttpSpringBootService {
   // https://spring-boot-secu-crowdfind-h2.herokuapp.com   spring-boot-security (H2-database)
 
  
-   private apiUrlCloud = 'https://back-lendme.herokuapp.com/api';
+   private apiUrlCloud = 'https://spring-boot-secu-crowdfind-h2.herokuapp.com/api';
 
 
 
@@ -188,7 +188,7 @@ export class apiHttpSpringBootService {
 
   }
 
-  public addProjectByCompanyOwner(ObjetResponseConnection, objectProject: ProjectModel){
+  public addProjectByCompanyOwner(ObjetResponseConnection, objectProject: ProjectRequestModel){
 
     const headersParam = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -892,6 +892,85 @@ export class apiHttpSpringBootService {
 
   }
 
+  countListMessagesNonLus(ObjetResponseConnection){
+
+    const headersParam = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ObjetResponseConnection.accessToken}`
+    });
+
+    const url = this.apiUrlCloud + '/messagerie_interne/list_message/count_messages_recus_non_lus';
+
+    return this.http.post(url, {}, { headers: headersParam });
+
+  }
+
+  getListMessagesNonLus(ObjetResponseConnection){
+
+    const headersParam = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ObjetResponseConnection.accessToken}`
+    });
+
+    const url = this.apiUrlCloud + '/messagerie_interne/list_message/messages_recus_non_lus';
+
+    return this.http.post(url, {}, { headers: headersParam });
+
+  }
+
+  getListMessagesRecusByUser(ObjetResponseConnection){
+
+    const headersParam = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ObjetResponseConnection.accessToken}`
+    });
+
+    const url = this.apiUrlCloud + '/messagerie_interne/list_message/messages_recus';
+
+    return this.http.post(url, {}, { headers: headersParam });
+
+  }
+
+  getListMessagesEnvoyesByUser(ObjetResponseConnection){
+
+    const headersParam = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ObjetResponseConnection.accessToken}`
+    });
+
+    const url = this.apiUrlCloud + '/messagerie_interne/list_message/messages_envoyes';
+
+    return this.http.post(url, {}, { headers: headersParam });
+
+  }
+
+  getDataMessageInterne(ObjetResponseConnection, tokenMessage){
+
+
+    const headersParam = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ObjetResponseConnection.accessToken}`
+    });
+
+    const url = this.apiUrlCloud + '/messagerie_interne/list_message/' + tokenMessage;
+
+    return this.http.post(url, {}, { headers: headersParam });
+
+  }
+
+  createMessageInterne(ObjetResponseConnection, objectMessage: MessageInterneModel ){
+
+    const headersParam = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ObjetResponseConnection.accessToken}`
+    });
+
+
+    const url = this.apiUrlCloud + '/messagerie_interne/list_message/create';
+
+    return this.http.post(url, objectMessage, { headers: headersParam });
+  }
+
                             /************************************************************************************** */
 
   public checkConfirmationInscription(token){
@@ -913,55 +992,7 @@ export class apiHttpSpringBootService {
 
 
 
-  getListMessagesRecusByUser(objectUser: UserModel){
 
-    const url = this.apiUrlCloud + '/users/' + objectUser.token + '/messages_recus/all';
-
-    return this.http.post(url, objectUser);
-
-  }
-
-  getListMessagesEnvoyesByUser(objectUser: UserModel){
-
-    const url = this.apiUrlCloud + '/users/' + objectUser.token + '/messages_envoyes/all';
-
-    return this.http.post(url, objectUser);
-
-  }
-
-
-  getListMessagesNonLus(objectUser: UserModel){
-
-    const url = this.apiUrlCloud + '/users/' + objectUser.token + '/list_messages_non_lus';
-
-    return this.http.post(url, objectUser);
-
-  }
-
-  countListMessagesNonLus(objectUser: UserModel){
-
-    const url = this.apiUrlCloud + '/users/' + objectUser.token + '/count_messages_non_lus';
-
-    return this.http.post(url, objectUser);
-
-  }
-
-  getDataMessageInterne(objectUser: UserModel, tokenMessage){
-
-
-    const url = this.apiUrlCloud + '/users/' + objectUser.token + '/messages/' + tokenMessage;
-
-    return this.http.post(url, objectUser);
-
-  }
-
-  updateDataMessageInterne(objectUser: UserModel, objectMessage: MessageInterneModel ){
-
-
-    const url = this.apiUrlCloud + '/users/' + objectUser.token + '/messages/' + objectMessage.token + '/update';
-
-    return this.http.post(url, objectMessage);
-  }
 
 
 }

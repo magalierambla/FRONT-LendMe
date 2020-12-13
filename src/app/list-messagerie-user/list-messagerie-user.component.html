@@ -54,23 +54,23 @@
 
                         <td> 
                             
-                            <img  [src]="message_recus._photoUserExp" class="mr-2"   style="width: 20px"  alt="">{{message_recus._nomUserExp}}
+                            <img  [src]="message_recus._userExp.photoUser" class="mr-2"   style="width: 20px"  alt="">{{message_recus._userExp.username}}
                         
                         </td>
 
                         <td scope="row">
 
-                            {{message_recus.dateCreated}}
+                            {{message_recus.date_created}}
                          </td>
 
                          <td scope="row">
 
-                            {{message_recus.statutExp}}
+                            {{message_recus.stautUser}}
                          </td>
 
                         <td scope="row">
 
-                          <div class="text-truncate">{{message_recus.bodyMessage}}</div>
+                          <div class="text-truncate">{{message_recus.body_message}}</div>
                          </td> 
                         <td scope="row">
 
@@ -116,23 +116,23 @@
     
                             <td> 
                                 
-                                <img  [src]="message_envoye._photoUserExp" class="mr-2"   style="width: 20px"  alt="">{{message_envoye._nomUserDest}}
+                                <img  [src]="message_envoye._userDest.photoUser" class="mr-2"   style="width: 20px"  alt="">{{message_envoye._userDest.username}}
                             
                             </td>
     
                             <td scope="row">
     
-                                {{message_envoye.dateCreated}}
+                                {{message_envoye.date_created}}
                              </td>
     
                              <td scope="row">
     
-                                {{message_envoye.statutDest}}
+                                {{message_envoye.stautUser}}
                              </td>
     
                             <td scope="row">
     
-                                {{message_envoye.bodyMessage}}
+                                {{message_envoye.body_message}}
                              </td> 
                              <td scope="row">
 

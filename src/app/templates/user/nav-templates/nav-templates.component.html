@@ -119,12 +119,12 @@
           </h6>
           <a class="dropdown-item d-flex align-items-center" href="#"  *ngFor="let message_recus of listMessagesRecus">
             <div class="dropdown-list-image mr-3">
-              <img class="rounded-circle" [src]="message_recus._photoUserExp" alt="">              
+              <img class="rounded-circle" [src]="message_recus._userExp.photoUser" alt="">              
               <div class="status-indicator bg-success"></div>
             </div>
             <div class="font-weight-bold">
-              <div class="text-truncate">{{message_recus.bodyMessage}}...</div>
-              <div class="small text-gray-500">{{message_recus._nomUserExp}} · 58m</div>
+              <div class="text-truncate">{{message_recus.body_message}}...</div>
+              <div class="small text-gray-500">{{message_recus._userExp.username}} · {{message_recus.tempsEcoule}} </div>
             </div>
           </a>
 

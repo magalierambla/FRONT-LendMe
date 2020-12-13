@@ -187,7 +187,8 @@ export class SearchProjectsByCategoryVisitorComponent implements OnInit {
 
       this.listtemplateProjects[index].dateLimiteCollecteFormate = this.datePipe.transform(this.listProjects[index].date_limite_collecte, 'dd-MM-yyyy');
 
-
+      this.listtemplateProjects[index].project.description = truncatParagraphe(this.listtemplateProjects[index].project.description);
+    
       /********************************************************** */
 
 

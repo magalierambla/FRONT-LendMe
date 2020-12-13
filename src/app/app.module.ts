@@ -93,8 +93,8 @@ import { MatDateFormats, MAT_DATE_LOCALE, MAT_DATE_FORMATS } from '@angular/mate
 import { ListMessagesContactVisitorAdminComponent } from './list-messages-contact-visitor-admin/list-messages-contact-visitor-admin.component';
 import { ShowMessageContactVisitorAdminComponent } from './show-message-contact-visitor-admin/show-message-contact-visitor-admin.component';
 
-import { ListMessagerieAdminComponent } from './list-messagerie-admin/list-messagerie-admin.component';
-import { ShowMessagerieAdminComponent } from './show-messagerie-admin/show-messagerie-admin.component';
+
+
 
 import { ShowMessagerieVisitorAdminComponent } from './show-messagerie-visitor-admin/show-messagerie-visitor-admin.component';
 import { SettingProfilUserComponent } from './setting-profil-user/setting-profil-user.component';
@@ -151,8 +151,6 @@ export function getBaseUrl() {
     ListMessagesContactVisitorAdminComponent,
     ShowMessageContactVisitorAdminComponent,
     ListMessagerieUserComponent,
-    ListMessagerieAdminComponent,
-    ShowMessagerieAdminComponent,
     ShowMessagerieUserComponent,
     CaptchaIdentificationUserComponent,
     ShowProfilUserAdminComponent,

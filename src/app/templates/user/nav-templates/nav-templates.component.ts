@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { TranslateService } from '@ngx-translate/core';
 import { apiHttpSpringBootService } from './../../../api-spring-boot.service';
-import {UserModel, MessageInterneModel} from './../../../interfaces/models';
+import {UserModel, MessageInterneModel, ResponseConnectionUserModel} from './../../../interfaces/models';
+import { calculTempsEcoule, truncatMessageRecusNonLus } from 'src/app/interfaces/functions';
 
 declare var navigator: any;
 
@@ -16,6 +17,8 @@ declare var navigator: any;
 export class NavTemplatesUserComponent implements OnInit {
 
   public infosUser: UserModel = new UserModel();
+
+  public ObjetResponseConnection: ResponseConnectionUserModel = new ResponseConnectionUserModel();
 
   public urlImageProfil: string;
 
@@ -48,35 +51,44 @@ export class NavTemplatesUserComponent implements OnInit {
       translate.setDefaultLang(this.userLang);
     }
 
+    if (this.cookie.get('infosUser')  &&  this.cookie.get('ObjetResponseConnection')) {
 
+      this.ObjetResponseConnection = JSON.parse(this.cookie.get('ObjetResponseConnection'));
 
-    this.infosUser = JSON.parse(this.cookie.get('infosUser'));
+      this.infosUser = JSON.parse(this.cookie.get('infosUser'));
 
-    if (this.infosUser.photoUser === ''  ||  !this.infosUser.photoUser) {
+      if (this.infosUser.photoUser === ''  ||  !this.infosUser.photoUser) {
 
-      if (this.infosUser.sex === 'F') {
+        if (this.infosUser.sex === 'F') {
 
-        this.infosUser.photoUser = './assets/img/users/user_f.png';
+          this.infosUser.photoUser = './assets/img/users/user_f.png';
 
-        this.urlImageProfil = './assets/img/users/user_f.png';
+          this.urlImageProfil = './assets/img/users/user_f.png';
+        }
+
+        if (this.infosUser.sex === 'H') {
+
+          this.infosUser.photoUser = './assets/img/users/user_m.png';
+
+          this.urlImageProfil = './assets/img/users/user_m.png';
+        }
+
+      } else {
+
+        this.urlImageProfil = this.infosUser.photoUser;
+
       }
 
-      if (this.infosUser.sex === 'H') {
+      this.countMessagesNonLus();
 
-        this.infosUser.photoUser = './assets/img/users/user_m.png';
-
-        this.urlImageProfil = './assets/img/users/user_m.png';
-      }
+      this.listMessagesNonLus();
 
     } else {
 
-      this.urlImageProfil = this.infosUser.photoUser;
-
+      this.router.navigate(['/Identification']);
     }
 
-    this.countMessagesNonLus();
 
-    this.listMessagesNonLus();
 
 
   }
@@ -118,7 +130,7 @@ export class NavTemplatesUserComponent implements OnInit {
   countMessagesNonLus(){
 
 
-    this.apiService.countListMessagesNonLus(this.infosUser).subscribe((nbrMessages: number) => {
+    this.apiService.countListMessagesNonLus(this.ObjetResponseConnection).subscribe((nbrMessages: number) => {
 
      // alert(nbrMessages);
 
@@ -133,9 +145,34 @@ export class NavTemplatesUserComponent implements OnInit {
 
   listMessagesNonLus(){
 
-    this.apiService.getListMessagesNonLus(this.infosUser).subscribe((dataMessages: Array<MessageInterneModel>) => {
+    this.apiService.getListMessagesNonLus(this.ObjetResponseConnection).subscribe((dataMessages: Array<MessageInterneModel>) => {
 
-     this.listMessagesRecus = dataMessages;
+      // tslint:disable-next-line:prefer-for-of
+      for (let index = 0; index < dataMessages.length; index++) {
+
+        dataMessages[index].body_message = truncatMessageRecusNonLus(dataMessages[index].body_message);
+
+        dataMessages[index].tempsEcoule = calculTempsEcoule(dataMessages[index].timestamp);
+
+
+        if (dataMessages[index]._userExp.photoUser === ''  ||  !dataMessages[index]._userExp.photoUser) {
+
+        if (dataMessages[index]._userExp.sex === 'F') {
+
+          dataMessages[index]._userExp.photoUser = './assets/img/users/user_f.png';
+        }
+
+        if (dataMessages[index]._userExp.sex === 'H') {
+
+          dataMessages[index]._userExp.photoUser = './assets/img/users/user_m.png';
+
+        }
+
+      }
+
+      }
+
+      this.listMessagesRecus = dataMessages;
 
 
    }, (error: any) => {

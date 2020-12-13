@@ -409,6 +409,8 @@ export class AccueilComponent implements OnInit {
       // tslint:disable-next-line:max-line-length
       listTemplateProjects[index].dateLimiteCollecteFormate = this.datePipe.transform(listTemplateProjects[index].project.date_limite_collecte, 'dd-MM-yyyy');
 
+      listTemplateProjects[index].project.description = truncatParagraphe(listTemplateProjects[index].project.description);
+
 
       /********************************************************** */
 

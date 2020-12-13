@@ -5,7 +5,7 @@ import { apiHttpSpringBootService } from './../api-spring-boot.service';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { DatePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
-import { UserModel, MessageInterneModel } from '../interfaces/models';
+import { UserModel, MessageInterneModel, ResponseConnectionUserModel } from '../interfaces/models';
 
 import { IpServiceService } from './../ip-service.service';
 
@@ -18,6 +18,8 @@ export class ShowMessagerieUserComponent implements OnInit {
 
   public infosUser: UserModel = new UserModel();
 
+  public ObjetResponseConnection: ResponseConnectionUserModel = new ResponseConnectionUserModel();
+
   public objectMessage: MessageInterneModel = new MessageInterneModel();
 
   public typeMessage: any;
@@ -26,7 +28,9 @@ export class ShowMessagerieUserComponent implements OnInit {
               private apiService: apiHttpSpringBootService, private ngxService: NgxUiLoaderService,
               private datePipe: DatePipe, public sanitizer: DomSanitizer, private ip: IpServiceService) {
 
-    if (this.cookie.get('infosUser')) {
+   if (this.cookie.get('infosUser')  &&  this.cookie.get('ObjetResponseConnection')) {
+
+      this.ObjetResponseConnection = JSON.parse(this.cookie.get('ObjetResponseConnection'));
 
       this.infosUser = JSON.parse(this.cookie.get('infosUser'));
 
@@ -79,54 +83,21 @@ export class ShowMessagerieUserComponent implements OnInit {
 
   ngOnInit(): void {  }
 
-  getInfosMessage(tokenMessage){	
+  getInfosMessage(tokenMessage){
 
 
-    this.apiService.getDataMessageInterne(this.infosUser, tokenMessage).subscribe((dataMessage: MessageInterneModel) => {
+    // tslint:disable-next-line:max-line-length
+    this.apiService.getDataMessageInterne(this.ObjetResponseConnection, tokenMessage).subscribe((dataMessage: MessageInterneModel) => {
 
        this.objectMessage = dataMessage;
 
        console.log(this.objectMessage.dateConsultation);
 
-       if (!this.objectMessage.dateConsultation){
-
-         this.updateDateConsultation(this.objectMessage);
-
-       }
-
     }, (error: any) => {
 
-      
-    });
-
-
-  }
-
-  updateDateConsultation(objectMessage: MessageInterneModel){
-
-
-    const date = new Date();
-
-    this.objectMessage.dateConsultation = date.toLocaleString('fr-FR', {
-       weekday: 'long',
-       year: 'numeric',
-       month: 'long',
-       day: 'numeric',
-       hour: 'numeric',
-       minute: 'numeric',
-       second: 'numeric',
 
     });
 
-    this.objectMessage.timestampConsultation = Date.now();
-
-    this.apiService.updateDataMessageInterne(this.infosUser, this.objectMessage).subscribe((dataMessage: MessageInterneModel) => {
-
-
-    }, (error: any) => {
-
-      
-    });
 
   }
 

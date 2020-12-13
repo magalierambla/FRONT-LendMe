@@ -4,6 +4,7 @@ import { CategorieProjectModel, ProjectModel, templteProjectModel } from '../int
 import { apiHttpSpringBootService } from '../api-spring-boot.service';
 import { DatePipe } from '@angular/common';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
+import { truncatParagraphe } from '../interfaces/functions';
 
 @Component({
   selector: 'app-search-projects-visitor',
@@ -230,7 +231,7 @@ export class SearchProjectsVisitorComponent implements OnInit {
 
       this.listtemplateProjects[index].dateLimiteCollecteFormate = this.datePipe.transform(this.listProjects[index].date_limite_collecte, 'dd-MM-yyyy');
 
-
+      this.listtemplateProjects[index].project.description = truncatParagraphe(this.listtemplateProjects[index].project.description);
       /********************************************************** */
 
     }

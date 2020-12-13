@@ -1,4 +1,16 @@
-/******************************************************************** */
+export class ErrorMessageValidation{
+
+  success: boolean;
+  message: string;
+  champ: string ;
+
+  ErrorMessageValidation(){
+
+    this.success = true;
+    this.message = '';
+    this.champ = '';
+  }
+}
 
 export class InscriptionUserModel {
   name: string;
@@ -83,6 +95,17 @@ export class templteProjectModel {
          this.project = newProject;
 
    }
+}
+
+export class ProjectRequestModel {
+  nom: string;
+  description: string;
+  montant_minimun: number;
+  date_limite_collecte: string;
+  contrePartieProject: string;
+  afficheProject: string;
+  token_category: string;
+  id_porte_project: number;
 }
 
 
@@ -181,6 +204,7 @@ export class AdressReseauxSociauxProjectModel {
 }
 
 export class CategorieProjectModel {
+  id?: number;
   token: string;
   nom: string;
   nbr_projects: number;
@@ -240,7 +264,7 @@ export class commentProjectModel {
   dateCreated: string;
   timestamp: number;
   user: UserModel;
-  
+
 }
 
 
@@ -360,7 +384,24 @@ export class CommissionProjectModel {
   date_created: string;
   timestamp: number;
   created_at?: string;
-  _project?: ProjectModel; 
+  _project?: ProjectModel;
+}
+
+export class MessageInterneModel {
+  token: string;
+  body_message: string;
+  date_created: string;
+  timestamp: number;
+  _userDest: UserModel;
+  _userExp: UserModel;
+  dateConsultation: string;
+  tempsEcoule?: string;
+  stautUser?: string;
+  MessageInterneModel(){
+
+       this.stautUser = 'utilisateur';
+
+  }
 }
 
 
@@ -383,23 +424,6 @@ export class FormContactModel {
   statut_read: number;
 }
 
-export class MessageInterneModel {
-  id: number;
-  token: string;
-  bodyMessage: string;
-  dateCreated: string;
-  timestamp: number;
-  _tokenProject: string;
-  _nomUserExp: string;
-  _nomUserDest: string;
-  _photoUserExp: string;
-  _photoUserDest: string;
-  _tokenUserExp: string;
-  _tokenUserDest: string;
-  statutExp: string;
-  statutDest: string;
-  timestampConsultation: number;
-  dateConsultation: string;
-}
+
 
 

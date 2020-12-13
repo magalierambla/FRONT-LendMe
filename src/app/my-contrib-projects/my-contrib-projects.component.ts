@@ -5,6 +5,7 @@ import { apiHttpSpringBootService } from './../api-spring-boot.service';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { DatePipe } from '@angular/common';
 import {UserModel, ProjectModel, templteProjectModel, InvestiteurProjectModel, ResponseConnectionUserModel} from '../interfaces/models';
+import { truncatParagraphe } from '../interfaces/functions';
 
 @Component({
   selector: 'app-my-contrib-projects',
@@ -212,7 +213,7 @@ export class MyContribProjectsComponent implements OnInit {
 
       this.listtemplateProjects[index].dateLimiteCollecteFormate = this.datePipe.transform(this.listProjects[index].date_limite_collecte, 'dd-MM-yyyy');
 
-
+      this.listtemplateProjects[index].project.description = truncatParagraphe(this.listtemplateProjects[index].project.description);
       /********************************************************** */
 
 
